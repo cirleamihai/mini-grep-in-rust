@@ -4,7 +4,10 @@ use std::fs;
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let file_content = fs::read_to_string(config.file_text)?;
 
-    println!("Text is {file_content}");
+    for line in search(&config.query, &file_content) {
+        println!("{line}");
+    }
+
     Ok(())
 }
 
@@ -26,6 +29,17 @@ impl Config {
     }
 }
 
+fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut result = Vec::new();
+    for line in contents.lines() {
+        if line.contains(query) {
+            result.push(line.trim());
+        }
+    };
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -39,17 +53,6 @@ mod tests {
         ";
 
         assert_eq!(vec!["safe, fast, productive."], search(query, contents));
-    }
-
-    fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-        let mut result = Vec::new();
-        for line in contents.lines() {
-            if line.contains(query) {
-                result.push(line.trim());
-            }
-        };
-
-        result
     }
 }
 
