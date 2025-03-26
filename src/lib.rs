@@ -23,44 +23,40 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
+    pub fn new(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        let _program = args.next();
+        let _peek = args.next().ok_or("not enough arguments")?;
 
-        let is_case_insensitive = args[1].clone() == "-I";
-        let starting_index = if is_case_insensitive { 2 } else { 1 };
+        let (query, file_name, is_case_insensitive) = if _peek == "-I" {
+            let query = args.next().ok_or("missing query after -I")?;
+            let file_text = args.next().ok_or("missing file_text after -I")?;
+            (query, file_text, true)
+        } else {
+            let file_text = args.next().ok_or("not enough arguments")?;
+            (_peek, file_text, false)
+        };
 
         Ok(Config {
-            query: args[starting_index].clone(),
-            file_text: args[starting_index + 1].clone(),
-            is_case_insensitive,
+            query: query,
+            file_text: file_name,
+            is_case_insensitive
         })
     }
 }
 
 fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut result = Vec::new();
-    for line in contents.lines() {
-        if line.contains(query) {
-            result.push(line.trim());
-        }
-    }
-
-    result
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 }
 
 fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = query.to_lowercase();
-    let mut results = Vec::new();
-
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
-
-    results
+    contents
+        .lines()
+        .filter(|line| line.to_lowercase().contains(&query))
+        .collect()
 }
 
 #[cfg(test)]

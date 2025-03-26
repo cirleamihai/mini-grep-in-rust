@@ -3,8 +3,7 @@ use lib::Config;
 use std::{env, process};
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let input_config = Config::new(&args).unwrap_or_else(|err| {
+    let input_config = Config::new(env::args()).unwrap_or_else(|err| {
         eprintln!("Failed to use the program: {err}");
         process::exit(1);
     });
